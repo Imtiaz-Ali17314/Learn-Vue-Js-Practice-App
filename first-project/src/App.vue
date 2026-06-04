@@ -6,26 +6,35 @@ export default {
   components: {
     NavBar,
   },
+  watch: {
+    $route(to) {
+      document.title = to.meta.title || "Vue Learning Hub";
+    },
+  },
 };
 </script>
 
 <style>
 #router-view {
   overflow-x: hidden;
-  padding: 0;
+  padding: 24px 0;
+  min-height: calc(100vh - 56px);
+  background-color: #f8f9fa;
 }
 
 .effect-enter-active,
 .effect-leave-active {
-  transition: 0.5s;
+  transition: 0.3s ease;
 }
 
 .effect-leave-to {
   opacity: 0;
+  transform: translateY(10px);
 }
 
 .effect-enter-from {
-  transform: translateX(-100%);
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>
 
@@ -40,3 +49,4 @@ export default {
     </router-view>
   </div>
 </template>
+
