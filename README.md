@@ -12,6 +12,8 @@ Welcome to the **Vue.js Learning Hub & Practice Workspace**! This repository is 
 
 Whether you are here to learn the fundamentals of reactive state management, explore **FormKit** form systems, or understand cross-origin session/cookie authentication via **Laravel Sanctum**, this repository provides a practical, clean, and interactive sandbox environment.
 
+🔗 **Repository Link:** [https://github.com/Imtiaz-Ali17314/Learn-Vue-Js-Practice-App.git](https://github.com/Imtiaz-Ali17314/Learn-Vue-Js-Practice-App.git)
+
 ---
 
 ## 📂 Repository Architecture
@@ -99,10 +101,21 @@ Before setting up the project, make sure you have the following installed on you
 - **Node.js** (v16+)
 - **PHP** (v8.2+)
 - **Composer**
+- **Git**
 
 ---
 
-### 1. Backend Server Setup (`file-upload-backend`)
+### 1. Clone the Repository
+
+First, clone the repository from GitHub and navigate to the project root:
+```bash
+git clone https://github.com/Imtiaz-Ali17314/Learn-Vue-Js-Practice-App.git
+cd Learn-Vue-Js-Practice-App
+```
+
+---
+
+### 2. Backend Server Setup (`file-upload-backend`)
 
 1. Open your terminal and navigate to the backend folder:
    ```bash
@@ -154,7 +167,7 @@ Before setting up the project, make sure you have the following installed on you
 
 ---
 
-### 2. Frontend Client Setup (`first-project`)
+### 3. Frontend Client Setup (`first-project`)
 
 1. Open a new terminal and navigate to the frontend folder:
    ```bash
