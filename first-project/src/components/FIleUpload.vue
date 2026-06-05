@@ -24,30 +24,48 @@ export default {
     handleFileUpload(event) {
       const selectedFiles = Array.from(event.target.files);
       this.addFiles(selectedFiles);
+      // Clear the input value so same file can be selected again
+      event.target.value = '';
     },
 
     addFiles(fileList) {
-      this.files = [...this.files, ...fileList];
+      const validFiles = [];
+      const invalidFiles = [];
+      const largeFiles = [];
+
       fileList.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.previews.push({
-              name: file.name,
-              size: (file.size / 1024).toFixed(1),
-              url: e.target.result,
-              type: "image",
-            });
-          };
-          reader.readAsDataURL(file);
+        if (!file.type.startsWith("image/")) {
+          invalidFiles.push(file.name);
+        } else if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          largeFiles.push(file.name);
         } else {
+          validFiles.push(file);
+        }
+      });
+
+      // Show warnings
+      if (invalidFiles.length > 0) {
+        this.showAlertMessage("warning", `Skipped (not images): ${invalidFiles.join(", ")}`);
+      }
+
+      if (largeFiles.length > 0) {
+        this.showAlertMessage("warning", `Skipped (over 5MB): ${largeFiles.join(", ")}`);
+      }
+
+      // Add only valid files
+      this.files = [...this.files, ...validFiles];
+
+      validFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
           this.previews.push({
             name: file.name,
             size: (file.size / 1024).toFixed(1),
-            url: null,
-            type: file.type || "unknown",
+            url: e.target.result,
+            type: "image",
           });
-        }
+        };
+        reader.readAsDataURL(file);
       });
     },
 
@@ -126,6 +144,7 @@ export default {
         });
         // Handle both direct array and Laravel resource/paginated format
         const data = response.data;
+        console.log("Fetched files:", data);
         if (Array.isArray(data)) {
           this.uploadedFiles = data;
         } else if (data && Array.isArray(data.data)) {
@@ -170,6 +189,8 @@ export default {
       if (type.includes("audio")) return "fa-file-audio";
       return "fa-file-alt";
     },
+
+
   },
 };
 </script>
@@ -181,7 +202,9 @@ export default {
 
         <!-- Page Header -->
         <div class="text-center mb-4">
-          <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
+          <div
+            class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3"
+            style="width: 64px; height: 64px;">
             <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
           </div>
           <h2 class="fw-bold mb-1" style="color: #e8eaed;">File Upload</h2>
@@ -190,20 +213,13 @@ export default {
 
         <!-- Alert Banner -->
         <transition name="fade">
-          <div
-            v-if="showAlert"
-            class="alert alert-dismissible fade show shadow-sm mb-4"
-            :class="`alert-${alertType}`"
-            role="alert"
-          >
-            <i
-              class="fas me-2"
-              :class="{
-                'fa-check-circle': alertType === 'success',
-                'fa-exclamation-triangle': alertType === 'danger',
-                'fa-info-circle': alertType === 'warning'
-              }"
-            ></i>
+          <div v-if="showAlert" class="alert alert-dismissible fade show shadow-sm mb-4" :class="`alert-${alertType}`"
+            role="alert">
+            <i class="fas me-2" :class="{
+              'fa-check-circle': alertType === 'success',
+              'fa-exclamation-triangle': alertType === 'danger',
+              'fa-info-circle': alertType === 'warning'
+}"></i>
             {{ alertMessage }}
             <button type="button" class="btn-close" @click="showAlert = false" aria-label="Close"></button>
           </div>
@@ -214,13 +230,8 @@ export default {
           <div class="card-body p-4">
 
             <!-- Drag & Drop Zone -->
-            <div
-              class="drop-zone text-center p-5 rounded-3 mb-3"
-              :class="{ 'drop-zone--active': isDragging }"
-              @dragover="handleDragOver"
-              @dragleave="handleDragLeave"
-              @drop="handleDrop"
-            >
+            <div class="drop-zone text-center p-5 rounded-3 mb-3" :class="{ 'drop-zone--active': isDragging }"
+              @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop">
               <div class="drop-zone__icon mb-3">
                 <i class="fas fa-cloud-upload-alt fa-3x" :class="isDragging ? 'text-primary' : 'text-secondary'"></i>
               </div>
@@ -230,12 +241,7 @@ export default {
               <p class="text-muted small mb-3">or</p>
               <label class="btn btn-outline-primary btn-sm rounded-pill px-4">
                 <i class="fas fa-folder-open me-2"></i>Browse Files
-                <input
-                  type="file"
-                  @change="handleFileUpload"
-                  multiple
-                  class="d-none"
-                />
+                <input type="file" @change="handleFileUpload" multiple class="d-none" />
               </label>
             </div>
 
@@ -251,12 +257,8 @@ export default {
                 <div v-for="(preview, index) in previews" :key="index" class="col-6 col-sm-4 col-md-3">
                   <div class="preview-card position-relative rounded-3 overflow-hidden">
                     <!-- Image preview -->
-                    <img
-                      v-if="preview.type === 'image'"
-                      :src="preview.url"
-                      :alt="preview.name"
-                      class="preview-card__img"
-                    />
+                    <img v-if="preview.type === 'image'" :src="preview.url" :alt="preview.name"
+                      class="preview-card__img" />
                     <!-- Non-image file icon -->
                     <div v-else class="preview-card__icon d-flex flex-column align-items-center justify-content-center">
                       <i class="fas fa-2x text-secondary" :class="getFileIcon(preview.type)"></i>
@@ -276,17 +278,15 @@ export default {
             </div>
 
             <!-- Upload Button -->
-            <button
-              class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm mt-2"
-              :disabled="isUploading || files.length === 0"
-              @click="submitFile"
-            >
+            <button class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm mt-2"
+              :disabled="isUploading || files.length === 0" @click="submitFile">
               <span v-if="isUploading">
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Uploading...
               </span>
               <span v-else>
-                <i class="fas fa-upload me-2"></i>Upload {{ files.length > 0 ? `(${files.length} file${files.length > 1 ? 's' : ''})` : '' }}
+                <i class="fas fa-upload me-2"></i>Upload {{ files.length > 0 ? `(${files.length} file${files.length > 1
+                  ? 's' : ''})` : '' }}
               </span>
             </button>
           </div>
@@ -316,7 +316,8 @@ export default {
             <div v-else-if="fetchError" class="text-center py-5">
               <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
               <p class="text-muted mb-1">Could not load uploaded files</p>
-              <p class="text-muted small mb-3">Make sure the Laravel backend is running on <code>localhost:8000</code></p>
+              <p class="text-muted small mb-3">Make sure the Laravel backend is running on <code>localhost:8000</code>
+              </p>
               <button class="btn btn-outline-primary btn-sm rounded-pill px-4" @click="fetchUploadedFiles">
                 <i class="fas fa-redo me-2"></i>Retry
               </button>
@@ -330,19 +331,14 @@ export default {
 
             <!-- Gallery Grid -->
             <div v-else class="row g-3">
-              <div
-                v-for="(file, index) in uploadedFiles"
-                :key="file.id || index"
-                class="col-6 col-sm-4 col-md-3"
-              >
+              <div v-for="(file, index) in uploadedFiles" :key="file.id || index" class="col-6 col-sm-4 col-md-3">
                 <div class="gallery-item position-relative rounded-3 overflow-hidden">
-                  <img
-                    :src="`http://localhost:8000/storage/${file.file_name}`"
-                    alt="uploaded file"
-                    class="gallery-item__img"
-                  />
+                  <img :src="file.file_url" class="gallery-item__img"
+                    @error="e => console.log('IMAGE FAILED', e.target.src)"
+                    @load="e => console.log('IMAGE LOADED', e.target.src)" />
                   <div class="gallery-item__overlay">
-                    <button class="btn btn-sm btn-danger rounded-circle shadow" @click="removeImage(index)" title="Delete">
+                    <button class="btn btn-sm btn-danger rounded-circle shadow" @click="removeImage(index)"
+                      title="Delete">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>

@@ -21,7 +21,10 @@ class UserController extends Controller
     // For API
 public function getAll()
 {
-    $users = User::all();
+    $users = User::all()->map(function($user) {
+        $user->file_url = asset('storage/' . $user->file_name);
+        return $user;
+    });
     return response()->json($users);
 }
 
