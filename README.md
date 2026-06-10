@@ -223,11 +223,5 @@ These settings ensure that axios cookies are accepted and files are safely uploa
 
 ---
 
-## 📝 Study Material
-
-If you are following along to learn Vue.js, do check out the file **[Vue Js Notes.docx](file:///d:/for%20CV/My%20Projects/Learn-Vue-Js-Practice-App/Vue%20Js%20Notes.docx)** at the root of the project. It provides an excellent companion guide summarizing the theoretical underpinnings of Vue.js, directives (`v-bind`, `v-model`, `v-if`, `v-for`), methods, reactive hooks, and state cycles.
-
----
-
 ## 📄 License
 This project is open-source software licensed under the [MIT License](https://opensource.org/licenses/MIT).
